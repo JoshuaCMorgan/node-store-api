@@ -4,10 +4,11 @@ require('dotenv').config();
 const express = require('express');
 const app = express();
 
+// import two middleware functions
 const notFoundMiddleware = require('./middleware/not-found');
 const errorMiddleware = require('./middleware/error-handler');
 
-// middleware
+// middleware (not used-added just so we don't forget)
 app.use(express.json());
 
 // routes
@@ -16,16 +17,15 @@ app.get('/', (req, res, next) => {
 });
 
 // products route
-
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
-const port = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000;
 
 const start = async () => {
   try {
     // connectDB
-    app.listen(port, console.log(`Server is listening port ${port}...`));
+    app.listen(PORT, console.log(`Server is listening port ${port}...`));
   } catch (error) {
     console.log(error);
   }
