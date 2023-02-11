@@ -2,7 +2,7 @@ const Product = require('../models/product');
 
 const getAllProductsStatic = async (req, res) => {
   // https://mongoosejs.com/docs/queries.html
-  const products = await Product.find({}).sort('-name, price');
+  const products = await Product.find({}).limit(1);
 
   res.status(200).json({
     products,
@@ -11,7 +11,7 @@ const getAllProductsStatic = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-  const { featured, company, name, sort } = req.query;
+  const { featured, company, name, sort, fields, limit } = req.query;
   const queryObject = {};
 
   if (featured) {
@@ -30,12 +30,24 @@ const getAllProducts = async (req, res) => {
   // gives us Query object from Mongoose
   let result = Product.find(queryObject);
 
+  // sort
   if (sort) {
     const sortList = sort.split(',').join(' ');
     result = result.sort(sortList);
   } else {
     result = result.sort('createdAt');
   }
+
+  // fields
+  if (fields) {
+    const fieldsList = fields.split(',').join(' ');
+    result = result.select(fieldsList);
+  }
+
+  // limit
+   if (limit) {
+    result = result.limit(Number(limit))
+   }
 
   const products = await result;
 
