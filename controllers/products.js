@@ -2,7 +2,9 @@ const Product = require('../models/product');
 
 const getAllProductsStatic = async (req, res) => {
   // https://mongoosejs.com/docs/queries.html
-  const products = await Product.find({}).sort('name').select('name price');
+  const products = await Product.find({ price: { $gt: 30 } })
+    .sort('price')
+    .select('name price');
 
   res.status(200).json({
     products,
@@ -11,7 +13,7 @@ const getAllProductsStatic = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-  const { featured, company, name, sort, fields } = req.query;
+  const { featured, company, name, sort, fields, numericFilters } = req.query;
   const queryObject = {};
 
   if (featured) {
@@ -25,6 +27,29 @@ const getAllProducts = async (req, res) => {
   if (name) {
     // https://www.mongodb.com/docs/manual/reference/operator/query/regex/#mongodb-query-op.-regex
     queryObject.name = { $regex: name, $options: 'i' };
+  }
+
+  if (numericFilters) {
+    const operatorMap = {
+      '>': '$gt',
+      '>=': '$gte',
+      '=': '$eq',
+      '<': '$lt',
+      '<=': '$lte',
+    };
+    const regEx = /\b(<|>|<=|>=|=)\b/g;
+    let filters = numericFilters.replace(regEx, (match) => {
+      // price-$gt-40
+      return `-${operatorMap[match]}-`;
+    });
+    const options = ['price', 'rating'];
+
+    filters = filters.split(',').forEach((item) => {
+      const [field, operator, value] = item.split('-');
+      if (options.includes(field)) {
+        queryObject[field] = { [operator]: Number(value) };
+      }
+    });
   }
 
   // gives us Query object from Mongoose
