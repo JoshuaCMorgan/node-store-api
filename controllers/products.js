@@ -37,11 +37,14 @@ const getAllProducts = async (req, res) => {
       '<': '$lt',
       '<=': '$lte',
     };
+
     const regEx = /\b(<|>|<=|>=|=)\b/g;
+
     let filters = numericFilters.replace(regEx, (match) => {
       // price-$gt-40
       return `-${operatorMap[match]}-`;
     });
+
     const options = ['price', 'rating'];
 
     filters = filters.split(',').forEach((item) => {
